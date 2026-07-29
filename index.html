@@ -23,17 +23,20 @@
         .menu-row .mi-name{ font-weight:600; }
         .menu-row .mi-desc{ font-size:13px; color:#777; }
         .menu-row .mi-price{ white-space:nowrap; font-weight:600; }
-        #talk-fab{
-            position:fixed; bottom:24px; right:24px; z-index:60;
-            background:#b8863b; color:#1c1712; border:none; border-radius:50px;
-            padding:14px 20px; font-weight:600; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,0.3);
-            font-family:'Inter', sans-serif; font-size:14px;
-        }
-        #talk-fab:hover{ background:#d6a559; }
     </style>
 </head>
 
 <body>
+
+    <div id="voice-banner" style="
+        position:sticky; top:0; z-index:70;
+        background:#b8863b; color:#1c1712;
+        text-align:center; padding:8px 16px;
+        font-family:'Inter', sans-serif; font-size:13px; font-weight:600;
+    ">
+        💬 Have a question? Click the button in the bottom-right corner to talk to us.
+    </div>
+
     <nav class="navbar fade-in">
         <div class="nav-container">
             <h1 class="logo">ELK AVE TAVERN</h1>
@@ -136,15 +139,13 @@
         </div>
     </footer>
 
-    <button id="talk-fab">🎙️ Talk to Elk Ave</button>
-
     <script src="script.js"></script>
 
     <!-- Live menu: pulls from the published Google Sheet CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script>
     (function(){
-        // TODO: paste the "Publish to web" CSV link from the Elk menu Google Sheet here
+        // Your published Google Sheet CSV link
         const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZFBCzpUV-bnq7FcQklrKOiZOlPw1F6LtvJaIzPYV55d6OGhJ967UOoHLIGsnwC4K57s8XDljb0Pss/pub?gid=0&single=true&output=csv";
 
         const FALLBACK = [
@@ -192,17 +193,26 @@
     })();
     </script>
 
-    <!-- Voice widget: real Vapi credentials for the Elk Ave demo assistant -->
-    <script src="https://unpkg.com/@vapi-ai/web@latest/dist/index.js"></script>
-    <script>
-        const VAPI_PUBLIC_KEY = "2d50143b-0c3b-4a09-aa1a-faaf09714bc5";
-        const VAPI_ASSISTANT_ID = "834fd04b-3f5a-450b-af58-a11eca6f5165";
+    <!-- Voice widget: Vapi's official pre-built widget, wired to the Elk Ave demo assistant -->
+    <vapi-widget
+        public-key="2d50143b-0c3b-4a09-aa1a-faaf09714bc5"
+        assistant-id="834fd04b-3f5a-450b-af58-a11eca6f5165"
+        mode="voice"
+        theme="dark"
+        base-bg-color="#1c1712"
+        accent-color="#b8863b"
+        cta-button-color="#b8863b"
+        cta-button-text-color="#1c1712"
+        border-radius="large"
+        size="compact"
+        position="bottom-right"
+        title="Talk to Elk Ave"
+        start-button-text="Talk to us"
+        end-button-text="End Call"
+        voice-show-transcript="true"
+    ></vapi-widget>
+    <script src="https://unpkg.com/@vapi-ai/client-sdk-react/dist/embed/widget.umd.js" async type="text/javascript"></script>
 
-        document.getElementById('talk-fab').addEventListener('click', function(){
-            const vapi = new window.Vapi(VAPI_PUBLIC_KEY);
-            vapi.start(VAPI_ASSISTANT_ID);
-        });
-    </script>
 </body>
 
 </html>
