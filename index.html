@@ -12,6 +12,25 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@300;400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Added for the live menu + voice widget — kept separate from style.css so nothing existing breaks */
+        .specials-ribbon{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px; justify-content:center; }
+        .special-chip{ background:#7a2e27; color:#fff; padding:8px 14px; border-radius:4px; font-size:14px; }
+        .live-badge{ font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#8a6a3a; display:block; margin-bottom:4px; }
+        .menu-cat{ margin:28px 0; }
+        .menu-cat h3{ font-size:14px; text-transform:uppercase; letter-spacing:0.08em; border-bottom:1px solid #ddd; padding-bottom:8px; margin-bottom:12px; }
+        .menu-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #eee; gap:16px; max-width:640px; margin:0 auto; text-align:left; }
+        .menu-row .mi-name{ font-weight:600; }
+        .menu-row .mi-desc{ font-size:13px; color:#777; }
+        .menu-row .mi-price{ white-space:nowrap; font-weight:600; }
+        #talk-fab{
+            position:fixed; bottom:24px; right:24px; z-index:60;
+            background:#b8863b; color:#1c1712; border:none; border-radius:50px;
+            padding:14px 20px; font-weight:600; cursor:pointer; box-shadow:0 6px 20px rgba(0,0,0,0.3);
+            font-family:'Inter', sans-serif; font-size:14px;
+        }
+        #talk-fab:hover{ background:#d6a559; }
+    </style>
 </head>
 
 <body>
@@ -54,42 +73,12 @@
 
         <section id="menu" class="menu section">
             <div class="container">
-                <h2 class="section-title text-center fade-in">Menu Highlights</h2>
+                <h2 class="section-title text-center fade-in">Menu</h2>
+                <span class="live-badge" style="display:block; text-align:center;">Updated live by the Elk Ave team</span>
                 <div class="divider mx-auto fade-in"></div>
-                <div class="menu-grid">
-                    <div class="menu-card fade-in slide-up">
-                        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=600&h=400"
-                            alt="Gourmet Burgers" class="menu-image">
-                        <div class="card-icon">🍔</div>
-                        <h3>Gourmet Burgers</h3>
-                        <p>Branded brioche buns, smashed or thick patties, house-made sauces, and the freshest local
-                            ingredients.</p>
-                    </div>
-                    <div class="menu-card fade-in slide-up delay-1">
-                        <img src="https://images.unsplash.com/photo-1734769853702-c7444c039c8c?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cGhpbGx5JTIwY2hlZXNlc3RlYWt8ZW58MHx8MHx8fDA%3D"
-                            alt="Authentic Cheesesteaks" class="menu-image">
-                        <div class="card-icon">🥩</div>
-                        <h3>Authentic Cheesesteaks</h3>
-                        <p>Thinly sliced ribeye, melted provolone, and caramelized onions on a freshly baked hero roll.
-                        </p>
-                    </div>
-                    <div class="menu-card fade-in slide-up delay-2">
-                        <img src="https://images.unsplash.com/photo-1527477396000-e27163b481c2?auto=format&fit=crop&q=80&w=600&h=400"
-                            alt="Double-Fried Wings" class="menu-image">
-                        <div class="card-icon">🍗</div>
-                        <h3>Double-Fried Wings</h3>
-                        <p>Crispy on the outside, juicy on the inside, tossed in our signature house glazes and fiery
-                            rubs.</p>
-                    </div>
-                    <div class="menu-card fade-in slide-up delay-3">
-                        <img src="https://images.unsplash.com/photo-1536935338788-846bb9981813?auto=format&fit=crop&q=80&w=600&h=400"
-                            alt="Craft Cocktails" class="menu-image">
-                        <div class="card-icon">🍸</div>
-                        <h3>Craft Cocktails</h3>
-                        <p>Balanced, bold, and beautiful libations crafted by our expert mixologists to complement your
-                            meal.</p>
-                    </div>
-                </div>
+
+                <div class="specials-ribbon" id="specials-ribbon"></div>
+                <div id="menu-categories"></div>
             </div>
         </section>
 
@@ -147,7 +136,73 @@
         </div>
     </footer>
 
+    <button id="talk-fab">🎙️ Talk to Elk Ave</button>
+
     <script src="script.js"></script>
+
+    <!-- Live menu: pulls from the published Google Sheet CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script>
+    (function(){
+        // TODO: paste the "Publish to web" CSV link from the Elk menu Google Sheet here
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSZFBCzpUV-bnq7FcQklrKOiZOlPw1F6LtvJaIzPYV55d6OGhJ967UOoHLIGsnwC4K57s8XDljb0Pss/pub?gid=0&single=true&output=csv";
+
+        const FALLBACK = [
+            {Category:"Starters", Item:"Braised Beef Fries", Description:"Slow-braised beef, melted cheese, house sauce", Price:"$12", Featured:"Yes", Special:"", "Special Note":""},
+            {Category:"Entrees", Item:"Buttermilk Fried Chicken Sandwich", Description:"Crispy buttermilk chicken, pickles, house bun", Price:"$14", Featured:"", Special:"", "Special Note":""},
+            {Category:"Entrees", Item:"Pork Belly-Watermelon Tacos", Description:"Seasonal dinner special, fresh watermelon, pork belly", Price:"$15", Featured:"", Special:"Yes", "Special Note":"Dinner only"},
+            {Category:"Drinks", Item:"Banana Bread Old Fashioned", Description:"House cocktail, banana bread-infused bourbon", Price:"$13", Featured:"", Special:"", "Special Note":""}
+        ];
+
+        function render(rows){
+            rows = rows.filter(r => r.Category && r.Item);
+            const specials = rows.filter(r => (r.Special||"").trim().toLowerCase() === "yes");
+            const cats = [...new Set(rows.map(r => r.Category))];
+
+            const ribbon = document.getElementById('specials-ribbon');
+            ribbon.innerHTML = specials.length
+                ? `<span style="width:100%;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#8a6a3a;">Today's Specials</span>` +
+                  specials.map(s => `<div class="special-chip"><b>${s.Item}</b> — ${s.Price}${s["Special Note"] ? " · " + s["Special Note"] : ""}</div>`).join("")
+                : "";
+
+            const mc = document.getElementById('menu-categories');
+            mc.innerHTML = cats.map(c => `
+                <div class="menu-cat">
+                    <h3>${c}</h3>
+                    ${rows.filter(r => r.Category === c).map(r => `
+                        <div class="menu-row">
+                            <div>
+                                <div class="mi-name">${r.Item}${(r.Featured||"").trim().toLowerCase() === "yes" ? " ⭐" : ""}</div>
+                                <div class="mi-desc">${r.Description}</div>
+                            </div>
+                            <div class="mi-price">${r.Price}</div>
+                        </div>
+                    `).join("")}
+                </div>
+            `).join("");
+        }
+
+        fetch(SHEET_CSV_URL)
+            .then(r => r.text())
+            .then(csv => {
+                const parsed = Papa.parse(csv, { header: true, skipEmptyLines: true });
+                render(parsed.data);
+            })
+            .catch(() => render(FALLBACK));
+    })();
+    </script>
+
+    <!-- Voice widget: real Vapi credentials for the Elk Ave demo assistant -->
+    <script src="https://unpkg.com/@vapi-ai/web@latest/dist/index.js"></script>
+    <script>
+        const VAPI_PUBLIC_KEY = "2d50143b-0c3b-4a09-aa1a-faaf09714bc5";
+        const VAPI_ASSISTANT_ID = "834fd04b-3f5a-450b-af58-a11eca6f5165";
+
+        document.getElementById('talk-fab').addEventListener('click', function(){
+            const vapi = new window.Vapi(VAPI_PUBLIC_KEY);
+            vapi.start(VAPI_ASSISTANT_ID);
+        });
+    </script>
 </body>
 
 </html>
